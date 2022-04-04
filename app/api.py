@@ -31,3 +31,9 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return {"title":"Test"}
+
+
+@app.get("/dash_way")
+async def dash_way():
+    return {"title":"Test"}
+
