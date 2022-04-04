@@ -37,3 +37,8 @@ async def root():
 async def dash_way():
     return {"title":"Test"}
 
+
+@app.get("/react_way")
+async def react_way():
+    return {"title":"Test"}
+
