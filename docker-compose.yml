@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+  app:
+    build: .
+    command: python main.py
+    volumes:
+      - ./:/app/
+    ports:
+      - 8000:8000
+
+  app_db:
+    image: postgres:12.1-alpine
+    volumes:
+      - postgres_data_TDV:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=trade_data_visualization
+
+volumes:
+  postgres_data_TDV:
