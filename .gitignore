@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 .vscode
 temp/
+data/
 
 .DS_STORE
 node_modules
