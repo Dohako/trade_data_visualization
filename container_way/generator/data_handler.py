@@ -3,7 +3,6 @@ import time
 from random import random
 from time import sleep
 
-import dotenv
 import redis
 from loguru import logger
 
@@ -31,9 +30,9 @@ def update_data(update_rate=5, create_new=True):
 class RedisEnv:
     __slots__ = ("host", "port", "db")
 
-    def __init__(self, path_to_env=".env") -> None:
-        if not dotenv.load_dotenv(dotenv_path=path_to_env):
-            raise FileNotFoundError(f".env not found in {path_to_env}")
+    def __init__(self) -> None:
+        # if not dotenv.load_dotenv(dotenv_path=path_to_env):
+        #     raise FileNotFoundError(f".env not found in {path_to_env}")
         self.host = os.getenv("REDIS_HOST")
         self.port = os.getenv("REDIS_PORT")
         self.db = os.getenv("REDIS_DB")
@@ -43,8 +42,8 @@ class RedisEnv:
             )
 
 
-def connect_to_redis(path_to_env=".env"):
-    r_env = RedisEnv(path_to_env)
+def connect_to_redis():
+    r_env = RedisEnv()
     my_r = redis.Redis(host=r_env.host, port=r_env.port, db=r_env.db)
     return my_r
 
