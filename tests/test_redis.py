@@ -1,11 +1,14 @@
 from loguru import logger
-from container_way.generator.data_handler import update_data, MyRedis as GRedis
+from container_way.generator.data_handler import MyRedis as GRedis
 from container_way.view_point.utils.redis_handler import MyRedis as VRedis
 import dotenv
 import pytest
 from tests.tredis import TRedis
 
 def test_00_redis_empty_env():
+    """
+    Testing env error so it couldn't run without env vars for redis
+    """
     with pytest.raises(ValueError):
         GRedis()
         VRedis()
@@ -13,6 +16,9 @@ def test_00_redis_empty_env():
     dotenv.load_dotenv(dotenv_path='./tests/test.env')
 
 def test_01_redis_funcs_in_generator():
+    """
+    Testing main redis features in generator
+    """
     r = GRedis()
     r.my_r = TRedis()
 
@@ -36,6 +42,9 @@ def test_01_redis_funcs_in_generator():
     
 
 def test_02_redis_funcs_in_view():
+    """
+    Testing main redis features in view_point
+    """
     r = VRedis()
     r.my_r = TRedis()
 
