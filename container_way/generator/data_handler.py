@@ -1,38 +1,35 @@
 import os
-import time
 from random import random
-from time import sleep
+from time import sleep, time
 
 import redis
 from loguru import logger
 
 
 def update_data(update_rate=5, create_new=True):
+    my_redis = MyRedis()
+    my_redis.connect_to_redis()
+    start_time = time()
     while True:
         if create_new:
-            my_r = connect_to_redis()
-            my_r.flushdb()
+            my_redis.my_r.flushdb()
             create_new = False
-            update_redis("time", time.time())
-            for i in range(0, 100):
-                name = f"ticket_{i}"
-                value = 0
-                update_redis(name, value)
+            value = 0
         else:
-            update_redis("time", time.time())
-            for i in range(0, 100):
-                name = f"ticket_{i}"
-                value = generate_movement() + get_last_value(name)
-                update_redis(name, value)
-        sleep(update_rate)
+            value = generate_movement() + my_redis.get_last_value(key=name)
+
+        my_redis.update_redis("time",time())
+        for i in range(0, 100):
+            name = f"ticket_{i}"
+            my_redis.update_redis(key=name, val=value)
+
+        sleep(update_rate - (time()-start_time) % update_rate)
 
 
-class RedisEnv:
-    __slots__ = ("host", "port", "db")
+class MyRedis:
+    __slots__ = ("host", "port", "db", "my_r")
 
     def __init__(self) -> None:
-        # if not dotenv.load_dotenv(dotenv_path=path_to_env):
-        #     raise FileNotFoundError(f".env not found in {path_to_env}")
         self.host = os.getenv("REDIS_HOST")
         self.port = os.getenv("REDIS_PORT")
         self.db = os.getenv("REDIS_DB")
@@ -40,27 +37,32 @@ class RedisEnv:
             raise ValueError(
                 f"some of values are empty({self.host, self.port, self.db})"
             )
+        self.my_r = None
 
+    def _check_redis(func):
+        def wrapper(self,*args,**kwargs):
+            if self.my_r is None:
+                self.connect_to_redis()
+            return func(self,*args,**kwargs)
+        return wrapper
 
-def connect_to_redis():
-    r_env = RedisEnv()
-    my_r = redis.Redis(host=r_env.host, port=r_env.port, db=r_env.db)
-    return my_r
+    def connect_to_redis(self):
+        self.my_r = redis.Redis(host=self.host, port=self.port, db=self.db)
+        
+    @_check_redis
+    def update_redis(self, key, val:int|float):
+        if isinstance(val, int) or isinstance(val, float):
+            return self.my_r.rpush(key, val)
+        raise ValueError(f"Only float or int as values for next converting, got {type(val)} instead")
 
-
-def update_redis(key, val):
-    my_r = connect_to_redis()
-    my_r.rpush(key, val)
-
-
-def get_last_value(key) -> int:
-    my_r = connect_to_redis()
-    key_len = my_r.llen(key)
-    if key_len > 0:
-        start_index = key_len - 1
-        val = int(my_r.lindex(key, start_index))
-        return val
-    return 0
+    @_check_redis
+    def get_last_value(self, key) -> int:
+        key_len = self.my_r.llen(key)
+        if key_len > 0:
+            start_index = key_len - 1
+            val = int(self.my_r.lindex(key, start_index))
+            return val
+        return 0
 
 
 def generate_movement():

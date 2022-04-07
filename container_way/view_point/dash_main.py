@@ -1,6 +1,6 @@
 import uvicorn
 
-def start(event=None):
+def start():
     uvicorn.run("utils.dash_app:server", host="0.0.0.0", port=8000, reload=True)
     
 
