@@ -1,15 +1,13 @@
 # Trade data visualization
 
-Stack
+Simple app for creating and monitoring ticket pricess in one place.
 
-* Python
+## Stack
 
-I will try this task in several ways.
-
-1. Easy chart
-2. Dash
+* Python(Dash/multiprocessing)
+* Docker(+compose)
+* Redis
 
 ## Assemble
 
-1. fill .env.dev => rename to .env
-2. `docker-compose up --build`
+`docker-compose up --build`
