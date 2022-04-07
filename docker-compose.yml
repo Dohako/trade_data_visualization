@@ -1,22 +1,29 @@
 version: '3.7'
 
 services:
-  app:
-    build: .
-    command: python main.py
+  dash_app:
+    build: ./container_way/view_point
+    command: python dash_main.py
     volumes:
-      - ./:/app/
+      - ./:/dash_app/
     ports:
       - 8000:8000
-
-  app_db:
-    image: postgres:12.1-alpine
-    volumes:
-      - postgres_data_TDV:/var/lib/postgresql/data/
+    depends_on:
+      - redis
+    env_file:
+      - ./container_way/.env
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=trade_data_visualization
-
-volumes:
-  postgres_data_TDV:
+      - REDIS_HOST=redis
+  generator_app:
+    build: ./container_way/generator
+    command: python data_handler.py
+    volumes:
+      - ./:/generator_app/
+    depends_on:
+      - redis
+    env_file:
+      - ./container_way/.env
+    environment:
+      - REDIS_HOST=redis
+  redis:
+    image: "redis:6.0.6-alpine3.12"
