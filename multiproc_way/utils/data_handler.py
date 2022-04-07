@@ -1,37 +1,10 @@
-from datetime import datetime
 from random import random
 from time import sleep
 import json
 import os
 import time
+from loguru import logger
 
-temp_data = {}
-
-def add_to_dict(event=None, update_rate = 60):
-    while True:
-        for i in range(0,100):
-            name = f"ticker_{i}"
-            value = generate_movement()
-            if name not in temp_data:
-                temp_data.update({name:[(datetime.now(), value),]})
-            else:
-                temp_data[name].append((datetime.now(), value))
-        if event.is_set():
-            print("breaking")
-            break
-
-        sleep(update_rate)
-
-
-def add_data(data):
-    for i in range(1,100):
-        name = f"ticker_{i}"
-        value = generate_movement()
-        if name not in data:
-            data.update({name:[(datetime.now(), value),]})
-        else:
-            data[name].append((datetime.now(), value))
-    return data
 
 def update_data(event=None, update_rate=5, create_new=True):
     while True:
@@ -48,6 +21,8 @@ def update_data(event=None, update_rate=5, create_new=True):
                     data.update({name:[value]})
                 else:
                     data[name].append(value)
+            if not os.path.exists("./data"):
+                os.mkdir("./data")
             with open(f"./data/data.json", 'w', encoding='utf-8') as f:
                 json.dump(data, f)
             create_new = False
@@ -65,13 +40,12 @@ def update_data(event=None, update_rate=5, create_new=True):
                 if name not in data:
                     data.update({name:[value]})
                 else:
-                    data[name].append(value)
+                    data[name].append(value + data[name][-1])
             with open(f"./data/data.json", 'w', encoding='utf-8') as f:
                 json.dump(data, f)
         if event and event.is_set():
-            print("breaking")
+            logger.info("breaking")
             break
-        # break
         sleep(update_rate)
 
 def generate_movement():
