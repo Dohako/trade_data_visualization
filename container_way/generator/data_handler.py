@@ -1,7 +1,6 @@
 import os
-import time
 from random import random
-from time import sleep
+from time import sleep, time
 
 import redis
 from loguru import logger
@@ -10,23 +9,21 @@ from loguru import logger
 def update_data(update_rate=5, create_new=True):
     my_redis = MyRedis()
     my_redis.connect_to_redis()
-    my_r = my_redis.my_r
+    start_time = time()
     while True:
         if create_new:
-            my_r.flushdb()
+            my_redis.my_r.flushdb()
             create_new = False
-            my_redis.update_redis("time", time.time())
-            for i in range(0, 100):
-                name = f"ticket_{i}"
-                value = 0
-                my_redis.update_redis(key=name, val=value)
+            value = 0
         else:
-            my_redis.update_redis("time", time.time())
-            for i in range(0, 100):
-                name = f"ticket_{i}"
-                value = generate_movement() + my_redis.get_last_value(key=name)
-                my_redis.update_redis(key=name, val=value)
-        sleep(update_rate)
+            value = generate_movement() + my_redis.get_last_value(key=name)
+
+        my_redis.update_redis("time",time())
+        for i in range(0, 100):
+            name = f"ticket_{i}"
+            my_redis.update_redis(key=name, val=value)
+
+        sleep(update_rate - (time()-start_time) % update_rate)
 
 
 class MyRedis:
@@ -50,12 +47,13 @@ class MyRedis:
         return wrapper
 
     def connect_to_redis(self):
-        logger.info("connecting")
         self.my_r = redis.Redis(host=self.host, port=self.port, db=self.db)
         
     @_check_redis
-    def update_redis(self, key, val):
-        self.my_r.rpush(key, val)
+    def update_redis(self, key, val:int|float):
+        if isinstance(val, int) or isinstance(val, float):
+            return self.my_r.rpush(key, val)
+        raise ValueError(f"Only float or int as values for next converting, got {type(val)} instead")
 
     @_check_redis
     def get_last_value(self, key) -> int:
@@ -74,5 +72,3 @@ def generate_movement():
 
 if __name__ == "__main__":
     update_data(create_new=True)
-    # r = MyRedis()
-    # r.update_redis("1",2)

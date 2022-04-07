@@ -1,6 +1,4 @@
-import json
 from datetime import datetime
-from time import time
 
 import dash
 import plotly
@@ -9,7 +7,7 @@ from dash.dependencies import Input, Output
 from fastapi import FastAPI
 from loguru import logger
 from starlette.middleware.wsgi import WSGIMiddleware
-from utils.redis_handler import get_list_from_redis
+from utils.redis_handler import MyRedis
 
 OPERATION_INTERVALS = ("All", "5 last", "10 last", "60 last", "120 last", "300 last")
 external_stylesheets = [
@@ -124,9 +122,8 @@ app.layout = html.Div(
     ],
 )
 def update_charts(n, ticket_num, show_operations: str, interval: int):
-    # with open(f"./data/data.json", "r", encoding="utf-8") as f:
-    #     data: dict = json.load(f)
 
+    r = MyRedis()
     if show_operations != OPERATION_INTERVALS[0]:
         from_value = -int(show_operations.split()[0])
     else:
@@ -136,9 +133,9 @@ def update_charts(n, ticket_num, show_operations: str, interval: int):
         {
             "x": [
                 datetime.utcfromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
-                for ts in get_list_from_redis("time", from_value)
+                for ts in r.get_list_from_redis("time", from_value)
             ],
-            "y": get_list_from_redis(ticket_num, from_value),
+            "y": r.get_list_from_redis(ticket_num, from_value),
             "name": ticket_num,
             "mode": "lines+markers",
             "type": "scatter",
