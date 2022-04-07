@@ -10,10 +10,10 @@ services:
       - 8000:8000
     depends_on:
       - redis
-    env_file:
-      - ./container_way/.env
     environment:
       - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
   generator_app:
     build: ./container_way/generator
     command: python data_handler.py
@@ -21,9 +21,9 @@ services:
       - ./:/generator_app/
     depends_on:
       - redis
-    env_file:
-      - ./container_way/.env
     environment:
       - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
   redis:
     image: "redis:6.0.6-alpine3.12"
