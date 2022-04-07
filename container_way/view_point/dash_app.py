@@ -22,6 +22,10 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "Ticket Analytics"
 
 server = FastAPI()
+"""
+Ordinary Dash starts Flask service but it is not supported by Uvicorn cause of inside technologies
+I was needed to make it FastAPI because on multiprocessing way Flask was not starting
+"""
 server.mount("/", WSGIMiddleware(app.server))
 
 app.layout = html.Div(
@@ -122,7 +126,20 @@ app.layout = html.Div(
     ],
 )
 def update_charts(n, ticket_num, show_operations: str, interval: int):
+    """
+    updating charts every :interval:, also shows info depending on :ticket_num:
 
+    - n:
+        stores value of iterations, not used
+    - ticket_num:
+        recieve number of ticket to show it on chart
+    - show_operations:
+        qtty of operations to show from last to - this value
+    - interval:
+        interval of updating charts, NOT values in DB
+    - return:
+        plot to draw, interval to show the number on screen and interval multiplyed by 1000 to make this new delay
+    """
     r = MyRedis()
     if show_operations != OPERATION_INTERVALS[0]:
         from_value = -int(show_operations.split()[0])
