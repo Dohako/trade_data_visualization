@@ -7,12 +7,17 @@ from loguru import logger
 
 
 def update_data(update_rate=5, create_new=True):
+    """
+    Pseudo data changer
+    :param: update_rate: int - how often will new data be added to data list
+    :param: create_new: bool - should redis be flushed or data need to be saved
+    :return: None - idealy this function never stops because it is a simulation
+    """
     my_redis = MyRedis()
-    my_redis.connect_to_redis()
     start_time = time()
-    while True:
+    while True: # here I simulate work of some market places that constantly change price
         if create_new:
-            my_redis.my_r.flushdb()
+            my_redis.clear_rdb()
             create_new = False
             value = 0
         else:
@@ -27,6 +32,10 @@ def update_data(update_rate=5, create_new=True):
 
 
 class MyRedis:
+    """
+    class for redis
+    created for testing functions with redis through tests
+    """
     __slots__ = ("host", "port", "db", "my_r")
 
     def __init__(self) -> None:
@@ -40,6 +49,11 @@ class MyRedis:
         self.my_r = None
 
     def _check_redis(func):
+        """
+        wrapper for checking if redis object was initialized
+        if not - goes for it
+        made for testing purposes
+        """
         def wrapper(self,*args,**kwargs):
             if self.my_r is None:
                 self.connect_to_redis()
@@ -47,7 +61,14 @@ class MyRedis:
         return wrapper
 
     def connect_to_redis(self):
+        """
+        when using functions that were not written in this class - you will need to connect to redis.
+        """
         self.my_r = redis.Redis(host=self.host, port=self.port, db=self.db)
+
+    @_check_redis
+    def clear_rdb(self):
+        self.my_r.flushdb()
         
     @_check_redis
     def update_redis(self, key, val:int|float):
