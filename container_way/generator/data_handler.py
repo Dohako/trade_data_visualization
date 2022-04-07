@@ -9,9 +9,12 @@ from loguru import logger
 def update_data(update_rate=5, create_new=True):
     """
     Pseudo data changer
-    :param: update_rate: int - how often will new data be added to data list
-    :param: create_new: bool - should redis be flushed or data need to be saved
-    :return: None - idealy this function never stops because it is a simulation
+    - update_rate: 
+        how often will new data be added to data list
+    - create_new: 
+        should redis be flushed or data need to be saved
+    - return: None 
+        idealy this function never stops because it is a simulation
     """
     my_redis = MyRedis()
     start_time = time()
@@ -68,16 +71,40 @@ class MyRedis:
 
     @_check_redis
     def clear_rdb(self):
+        """
+        Delete all items in db
+        """
         self.my_r.flushdb()
         
     @_check_redis
     def update_redis(self, key, val:int|float):
+        """
+        Updating redis. Only add value to end of existing list or creating new as key
+        - key:
+            key of value that you want to store on
+        - val:
+            value to store
+        - return:
+            len of current list 
+        - raise:
+            raising ValueError if as value comes not float or int => because next code assumes that only this types
+            will be stored
+        """
         if isinstance(val, int) or isinstance(val, float):
             return self.my_r.rpush(key, val)
         raise ValueError(f"Only float or int as values for next converting, got {type(val)} instead")
 
     @_check_redis
     def get_last_value(self, key) -> int:
+        """
+        getting last value from dict with key key
+        - key:
+            key of value to retrieve
+        - return:
+            returns val itself or 0 if there is no val
+        - raise:
+            could be raise some error if there is no such key in table
+        """
         key_len = self.my_r.llen(key)
         if key_len > 0:
             start_index = key_len - 1
@@ -87,6 +114,10 @@ class MyRedis:
 
 
 def generate_movement():
+    """
+    function that was in task
+    Suppose to give 1 or -1 that will accumulate and will represent price changing
+    """
     movement = -1 if random() < 0.5 else 1
     return movement
 
